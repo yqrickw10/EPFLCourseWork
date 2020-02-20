@@ -1,0 +1,62 @@
+import ij.IJ;
+
+public class Code {
+
+	public ImageAccess gradientX(ImageAccess in) {
+		// TODO: Add you code here
+		return in;
+	}
+	
+	public ImageAccess gradientY(ImageAccess in) {
+		// TODO: Add you code here
+		return in;
+	}
+
+	public ImageAccess smoothing(ImageAccess in, double sigma) {
+		double poles[] = new double[3];
+		double a = 0.5; // TODO: Replace the expression of a
+		poles[0] = poles[1] = poles[2] = a;
+		// TODO: Add you code here
+		return in;
+	}
+
+	public ImageAccess[] structureTensor(ImageAccess in, double sigma) {
+		ImageAccess orient		= new ImageAccess(in.nx, in.ny);
+		ImageAccess coherency 	= new ImageAccess(in.nx, in.ny);
+		ImageAccess energy 		= new ImageAccess(in.nx, in.ny);
+		ImageAccess harris 		= new ImageAccess(in.nx, in.ny);
+		// TODO: Add you code here
+		ImageAccess features[] = new ImageAccess[] {orient, energy, coherency, harris};
+		return features;
+	}
+	
+	public void visualizeFeatures(ImageAccess in, double sigma, int mode) {
+		ImageAccess[] features = structureTensor(in, sigma);
+		if (mode == 1) {
+			features[0].show("Orientation");
+			features[1].show("Energy");
+			features[2].show("Coherency");
+			features[3].show("Harris");
+		}
+		if (mode == 2) {
+			// TODO: Add you code here
+			// new ImageAccess.Display(false, H, S, B, "HSB 2");	
+		}
+		if (mode == 3) {
+			// TODO: Add you code here
+			// new ImageAccess.Display(false, H, S, B, "HSB 3");	
+		}
+	}
+	
+	public void selectDirection(ImageAccess in, double sigma, double minOrientation, double maxOrientation) {
+		ImageAccess[] features = structureTensor(in, sigma);
+		// TODO: Add you code here
+	}
+
+	public void detectCorner(ImageAccess in, double sigma, double min, int L) {
+		ImageAccess[] features = structureTensor(in, sigma);
+		ImageAccess.Display display = in.show();
+		// TODO: Add you code here
+		display.overlayCross(in.nx/2, in.ny/2, 10); // A cross at the center
+	}
+} 
