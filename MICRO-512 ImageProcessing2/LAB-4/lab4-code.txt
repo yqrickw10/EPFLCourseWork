@@ -3,20 +3,81 @@ import ij.IJ;
 public class Code {
 
 	public ImageAccess gradientX(ImageAccess in) {
-		// TODO: Add you code here
-		return in;
+		double sigma = 1/Math.sqrt(2);
+        int L = (2*(int)Math.ceil(sigma*3))+1;//in this special case, L should be 7
+        ImageAccess out = new ImageAccess(in.nx, in.ny);
+
+        //convolution
+        
+        for(int i=0;i<out.nx;i++)
+        {
+            for(int j=0;j<out.ny;j++)
+            {
+                double value = 0.0;
+				double gradient = 0.0;
+				double[][] neighbor = out.getNeighborhood(i,j,L,L);
+                for(int x=-L;x<=L;x++)
+				{
+					for(int y=-L;y<=L;y++)
+					{
+						gradient = (-2*x/Math.PI)*Math.exp(-1*(x^2+y^2));
+						value+=neighbor[x+L][y+L]*gradient;
+					}
+				}
+				out.putPixel(i,j,value);
+            }
+        }
+		return out;
 	}
 	
 	public ImageAccess gradientY(ImageAccess in) {
-		// TODO: Add you code here
-		return in;
+		double sigma = 1/Math.sqrt(2);
+        int L = (2*(int)Math.ceil(sigma*3))+1;//in this special case, L should be 7
+        ImageAccess out = new ImageAccess(in.nx, in.ny);
+
+        //convolution
+        
+        for(int i=0;i<out.nx;i++)
+        {
+            for(int j=0;j<out.ny;j++)
+            {
+                double value = 0.0;
+				double gradient = 0.0;
+				double[][] neighbor = out.getNeighborhood(i,j,L,L);
+                for(int x=-L;x<=L;x++)
+				{
+					for(int y=-L;y<=L;y++)
+					{
+						gradient = (-2*y/Math.PI)*Math.exp(-1*(x*x+y*y));
+						value+=neighbor[x+L][y+L]*gradient;
+					}
+				}
+				out.putPixel(i,j,value);
+            }
+        }		
+		return out;
 	}
 
 	public ImageAccess smoothing(ImageAccess in, double sigma) {
 		double poles[] = new double[3];
-		double a = 0.5; // TODO: Replace the expression of a
+		int N = 3;
+		double a = 1+N/(sigma*sigma)-Math.sqrt(N*N+2*N*sigma*sigma)/(sigma*sigma);
 		poles[0] = poles[1] = poles[2] = a;
-		// TODO: Add you code here
+
+		for(int i=0;i<in.nx;i++)
+		{
+			double[] column = in.getColumn(i);
+			double[] column_out = Convolver.convolveIIR(column,poles);
+			in.putColumn(i,column_out);
+		}
+
+		for(int j=0;k<in.ny;j++)
+		{
+			double[] row = in.getRow(j);
+			double[] row_out = Convolver.convolveIIR(row,poles);
+			in.putRow(j,row_out);
+		}
+
 		return in;
 	}
 
@@ -25,7 +86,39 @@ public class Code {
 		ImageAccess coherency 	= new ImageAccess(in.nx, in.ny);
 		ImageAccess energy 		= new ImageAccess(in.nx, in.ny);
 		ImageAccess harris 		= new ImageAccess(in.nx, in.ny);
-		// TODO: Add you code here
+		ImageAccess gradient_x = gradientX(in);
+		ImageAccess gradient_y = gradientY(in);
+		ImageAccess gradient_x_2 = gradient_x.duplicate();
+		ImageAccess gradient_x_y = gradient_x.duplicate();
+		ImageAccess gradient_y_2 = gradient_y.duplicate();
+
+		gradient_x_2.multiply(graident_x);
+		gradient_x_y.multiply(gradient_y);
+		gradient_y_2.multiply(gradient_y);
+		
+		ImageAccess J_xx = smoothing(gradient_x_2,sigma);
+		ImageAccess J_xy = smoothing(gradient_x_y,sigma);
+		ImageAccess J_yy = smoothing(gradient_y_2,sigma);
+
+		for(int i=0;i<in.nx;i++)
+		{
+			for(int j=0;j<in.ny;j++)
+			{
+				double energy_pixelwise = J_xx.getPixel(i,j)+J_yy.getPixel(i,j);
+				orient.putPixel(i,j,0.5*Math.atan2(2*J_xy.getPixel(i,j)/(J_yy.getPixel(i,j)-J_xx.getPixel(i,j))));
+				energy.putPixel(i,j,energy_pixelwise);
+				if(energy_pixelwise<0.01)
+				{
+					coherency.putPixel(i,j,0);
+				}
+				else
+				{
+					coherency.putPixel(i,j,Math.sqrt(energy_pixelwise*energy_pixelwise+4*J_xy.getPixel(i,j)*J_xy.getPixel(i,j))/(energy_pixelwise));
+				}
+				harris.putPixel(i,j,J_xx.getPixel(i,j)*J_yy.getPixel(i,j)-J_yy.getPixel(i,j)*J_yy.getPixel(i,j)-0.05*energy_pixelwise*energy_pixelwise);
+			}
+		}
+
 		ImageAccess features[] = new ImageAccess[] {orient, energy, coherency, harris};
 		return features;
 	}
