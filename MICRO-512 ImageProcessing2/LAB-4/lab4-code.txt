@@ -132,24 +132,91 @@ public class Code {
 			features[3].show("Harris");
 		}
 		if (mode == 2) {
-			// TODO: Add you code here
-			// new ImageAccess.Display(false, H, S, B, "HSB 2");	
+
+			ImageAccess S = new ImageAccess(in.nx, in.ny);
+			ImageAccess B = new ImageAccess(in.nx, in.ny);
+			S.setConstant(255);
+			B.setConstant(255);
+			new ImageAccess.Display(false, features[0], S, B, "HSB 2");	
 		}
 		if (mode == 3) {
-			// TODO: Add you code here
-			// new ImageAccess.Display(false, H, S, B, "HSB 3");	
+			ImageAccess S = features[2].duplicate();
+			double max = features[2].getMaximum();
+			double min = features[2].getMinimum();
+			S.subtract(min);
+			S.divide(max-min);
+			new ImageAccess.Display(false, features[0], S, in, "HSB 3");	
 		}
 	}
 	
 	public void selectDirection(ImageAccess in, double sigma, double minOrientation, double maxOrientation) {
 		ImageAccess[] features = structureTensor(in, sigma);
-		// TODO: Add you code here
+		ImageAccess out = in.duplicate();
+		double max_energy = features[1].getMaximum();
+		double min_energy = features[1].getMinimum();
+
+		for(int i=0; i<in.nx; i++)
+		{
+			for(int j=0; j<in.ny; j++)
+			{
+				double energy = features[1].getPixel(i,j);
+				double coherency = features[2].getPixel(i,j);
+				double orient = features[0].getPixel(i,j);
+
+				if(energy>0.5*max_energy&&coherency>0.5&&orient<maxOrientation&&orient>minOrientation)
+				{
+					//keeping these pixels
+				}
+				else
+				{
+					out.putPixel(i,j,0);
+				}
+			}
+		}
+
+		out.show("Output of selectDirection");
 	}
 
 	public void detectCorner(ImageAccess in, double sigma, double min, int L) {
 		ImageAccess[] features = structureTensor(in, sigma);
 		ImageAccess.Display display = in.show();
-		// TODO: Add you code here
-		display.overlayCross(in.nx/2, in.ny/2, 10); // A cross at the center
+		for(int i=0; i<in.nx; i++)
+		{
+			for(int j=0; j<in.ny; j++)
+			{
+				double harris = features[3].getPixel(i,j);
+				if(harris>min&&localMaximum(in,L,i,j)==true)
+				{
+					display.overlayCross(i,j,10);
+				}
+			}
+		}
+	}
+
+	//self-defined function
+	public boolean localMaximum(ImageAccess in, int L, int i, int j)
+	{
+		double[][] neighbor = in.getNeighborhood(i,j,L,L);
+		double max = -Double.MAX_VALUE;
+		int index_x = -1;
+		int index_y = -1;
+
+		for(int x=0;x<L;x++)
+		{
+			for(int y=0;y<L;y++)
+			{
+				if(neighbor[x][y]>max)
+				{
+					index_x = x;
+					index_y = y;
+					max = neighbor[x][y];
+				}
+			}
+		}
+
+		if((index_x == (L-1)/2)&&(index_y == (L-1)/2))
+			return true;
+		else
+			return false;
 	}
 } 
