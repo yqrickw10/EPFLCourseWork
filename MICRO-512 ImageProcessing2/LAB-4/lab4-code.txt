@@ -71,7 +71,7 @@ public class Code {
 			in.putColumn(i,column_out);
 		}
 
-		for(int j=0;k<in.ny;j++)
+		for(int j=0;j<in.ny;j++)
 		{
 			double[] row = in.getRow(j);
 			double[] row_out = Convolver.convolveIIR(row,poles);
