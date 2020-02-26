@@ -5,5 +5,5 @@
 - CS-439 Optimization for Machine Learning
 - CS-450 Advanced Alogrithms
 - MICRO-512 Image-Processing II
-	- LAB-4 CODE (HALF COMPLETE) UPLOADED
+	- LAB-4 CODE (COMPLETE) UPLOADED
 - MATH-451 Numerical Approximation for PDEs
